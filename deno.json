@@ -1,0 +1,21 @@
+{
+  "name": "@aburd/sql-migration-manager",
+  "version": "0.1.0",
+  "license": "GPLv3",
+  "tasks": {
+    "setup": "./tasks/setup.sh",
+    "db:migration:create": "./tasks/create_migration.sh ./database/migrations",
+    "db:migration": "deno run --allow-env --allow-read --allow-write --allow-ffi ./tasks/migrations.ts",
+    "db:migrateAll": "deno run --allow-env --allow-read --allow-write --allow-ffi --allow-net ./tasks/migrateAll.ts"
+  },
+  "exports": "./mod.ts",
+  "imports": {
+    "@db/sqlite": "jsr:@db/sqlite@^0.12.0"
+  },
+  "fmt": {
+    "indentWidth": 2,
+    "semiColons": true,
+    "useTabs": false,
+    "singleQuote": false
+  }
+}
