@@ -44,7 +44,11 @@ function createMigrationsTable(db: Database, migrationsTable: string) {
   `);
 }
 
-function createMigration(db: Database, migrationsTable: string, { name, createdAt }: Migration) {
+function createMigration(
+  db: Database,
+  migrationsTable: string,
+  { name, createdAt }: Migration,
+) {
   return db.exec(`
     INSERT INTO ${migrationsTable}
       (name, created_at)
@@ -60,7 +64,12 @@ function deleteMigration(db: Database, migrationsTable: string, name: string) {
 }
 
 // MIGRATIONS SINGLE
-function runMigrationUp(db: Database, migrationsTable: string, sql: string, name: string) {
+function runMigrationUp(
+  db: Database,
+  migrationsTable: string,
+  sql: string,
+  name: string,
+) {
   const runTransaction = db.transaction(() => {
     db.exec(sql);
     const createdCount = createMigration(db, migrationsTable, {
@@ -74,7 +83,12 @@ function runMigrationUp(db: Database, migrationsTable: string, sql: string, name
   runTransaction();
 }
 
-function runMigrationDown(db: Database,migrationsTable: string, sql: string, name: string) {
+function runMigrationDown(
+  db: Database,
+  migrationsTable: string,
+  sql: string,
+  name: string,
+) {
   const runTransaction = db.transaction(() => {
     db.exec(sql);
     const deletedCount = deleteMigration(db, migrationsTable, name);
@@ -120,7 +134,12 @@ async function getMigrationsToRun(
   return migrationsToRun;
 }
 
-async function rollbackFromName(db: Database, migrationsTable: string, migrationsPath: string, name: string) {
+async function rollbackFromName(
+  db: Database,
+  migrationsTable: string,
+  migrationsPath: string,
+  name: string,
+) {
   const sql = await fileToString(
     `${migrationsPath}/${name}.down.sql`,
   );
@@ -133,7 +152,11 @@ async function rollbackFromName(db: Database, migrationsTable: string, migration
   runMigrationDown(db, migrationsTable, sql, name);
 }
 
-export async function rollbackOne(db: Database, migrationsTable: string, migrationsPath: string) {
+export async function rollbackOne(
+  db: Database,
+  migrationsTable: string,
+  migrationsPath: string,
+) {
   const [lastMigration] = getMigrations(db, migrationsTable).reverse();
 
   if (!lastMigration) {
@@ -141,10 +164,19 @@ export async function rollbackOne(db: Database, migrationsTable: string, migrati
     return;
   }
 
-  await rollbackFromName(db, migrationsTable, migrationsPath, lastMigration.name);
+  await rollbackFromName(
+    db,
+    migrationsTable,
+    migrationsPath,
+    lastMigration.name,
+  );
 }
 
-export async function rollbackAll(db: Database, migrationsTable: string, migrationsPath: string) {
+export async function rollbackAll(
+  db: Database,
+  migrationsTable: string,
+  migrationsPath: string,
+) {
   const migrations = getMigrations(db, migrationsTable).reverse();
 
   if (!migrations.length) {
@@ -157,11 +189,19 @@ export async function rollbackAll(db: Database, migrationsTable: string, migrati
   }
 }
 
-export async function migrateOne(db: Database, migrationsTable: string, migrationsPath: string) {
+export async function migrateOne(
+  db: Database,
+  migrationsTable: string,
+  migrationsPath: string,
+) {
   if (!tableExists(db, migrationsTable)) {
     createMigrationsTable(db, migrationsTable);
   }
-  const [migrationToRun] = await getMigrationsToRun(db, migrationsTable, migrationsPath);
+  const [migrationToRun] = await getMigrationsToRun(
+    db,
+    migrationsTable,
+    migrationsPath,
+  );
   if (!migrationToRun) {
     console.log("No migration to run.");
     return;
@@ -173,12 +213,20 @@ export async function migrateOne(db: Database, migrationsTable: string, migratio
   console.log(`Successfully migrated.`);
 }
 
-export async function migrateAll(db: Database, migrationsTable: string, migrationsPath: string) {
+export async function migrateAll(
+  db: Database,
+  migrationsTable: string,
+  migrationsPath: string,
+) {
   if (!tableExists(db, migrationsTable)) {
     createMigrationsTable(db, migrationsTable);
   }
 
-  const migrationsToRun = await getMigrationsToRun(db, migrationsTable, migrationsPath);
+  const migrationsToRun = await getMigrationsToRun(
+    db,
+    migrationsTable,
+    migrationsPath,
+  );
   if (!migrationsToRun.length) {
     console.log("No migrations to run.");
     return;
@@ -187,7 +235,12 @@ export async function migrateAll(db: Database, migrationsTable: string, migratio
   console.log(`Found migrations to run.`);
   for (const migrationToRun of migrationsToRun) {
     console.log(`Running migration: ${migrationToRun.name}`);
-    runMigrationUp(db, migrationsTable, migrationToRun.sql, migrationToRun.name);
+    runMigrationUp(
+      db,
+      migrationsTable,
+      migrationToRun.sql,
+      migrationToRun.name,
+    );
   }
   console.log(`Successfully migrated.`);
 }
