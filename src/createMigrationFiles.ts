@@ -11,7 +11,7 @@ function filenameDown(baseName: string) {
   return `${baseName}.down.sql`;
 }
 
-export async function createMigrationFiles(
+async function createMigrationFiles(
   migrationName: string,
   dirPath: string,
 ) {
@@ -32,4 +32,16 @@ export async function createMigrationFiles(
   ]);
 
   return { upFile, downFile };
+}
+
+export default async function runCreateMigrationFiles(
+  migrationName: string,
+  dirPath: string,
+) {
+  console.log(`Creating migrations...`);
+  const { upFile, downFile } = await createMigrationFiles(
+    migrationName,
+    dirPath,
+  );
+  console.log(`Created migrations ${downFile} and ${upFile} in ${dirPath}.`);
 }

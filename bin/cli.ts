@@ -1,5 +1,5 @@
 import { parseArgs } from "@cli/parse-args";
-import { createMigrationFiles } from "../src/createMigrationFiles.ts";
+import createMigrationFiles from "../src/createMigrationFiles.ts";
 
 type ArgDef = {
   name: string;
@@ -22,6 +22,15 @@ type CommandDef = {
   short?: string;
   description: string;
   args: ArgDef[];
+};
+
+
+type Command = {
+  type: "create";
+  name: string;
+  dir: string;
+} | {
+  type: "help";
 };
 
 const COMMAND_DEFS: CommandDef[] = [
@@ -117,14 +126,6 @@ function genParseOpts(): Parameters<typeof parseArgs>[1] {
   );
 }
 
-type Command = {
-  type: "create";
-  name: string;
-  dir: string;
-} | {
-  type: "help";
-};
-
 function getValueFromFlags(
   flags: ReturnType<typeof parseArgs>,
   arg: ArgDef,
@@ -197,17 +198,6 @@ function parseCliInput(): Command {
   return { type: "help" };
 }
 
-async function runCreateMigrationFiles(
-  migrationName: string,
-  dirPath: string = Deno.cwd(),
-) {
-  console.log(`Creating migrations...`);
-  const { upFile, downFile } = await createMigrationFiles(
-    migrationName,
-    dirPath,
-  );
-  console.log(`Created migrations ${downFile} and ${upFile} in ${dirPath}.`);
-}
 
 function main() {
   const cmd = parseCliInput();
@@ -218,7 +208,7 @@ function main() {
       break;
     }
     case "create": {
-      console.log("NOT IMPLEMENTED");
+      createMigrationFiles(cmd.name, cmd.dir)
       break;
     }
     default: {
