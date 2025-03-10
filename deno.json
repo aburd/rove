@@ -8,10 +8,17 @@
     "db:migration": "deno run --allow-env --allow-read --allow-write --allow-ffi ./tasks/migrations.ts",
     "db:migrateAll": "deno run --allow-env --allow-read --allow-write --allow-ffi --allow-net ./tasks/migrateAll.ts"
   },
-  "exports": "./mod.ts",
-  "imports": {
-    "@db/sqlite": "jsr:@db/sqlite@^0.12.0"
+  "exports": {
+    ".": "./mod.ts",
+    "./cli": "./bin/cli.ts"
   },
+  "imports": {
+    "@db/sqlite": "jsr:@db/sqlite@^0.12.0",
+    "@cli/parse-args": "jsr:@std/cli/parse-args"
+  },
+  "exclude": [
+    ".git"
+  ],
   "fmt": {
     "indentWidth": 2,
     "semiColons": true,
