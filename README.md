@@ -16,7 +16,7 @@ Rove will:
 ## As a library
 
 ```typescript
-import { db } from "@aburd/rove";
+import { db, migrations } from "@aburd/rove";
 
 const connection = db.connect({
   dbPath: "resources/test.db",

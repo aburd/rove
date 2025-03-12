@@ -30,7 +30,10 @@ import * as sqlite from "./sqlite.ts";
 
 export * from "./types.ts";
 
-type ConnectOpts = {
+/**
+ * Options for the connect function
+ */
+export type ConnectOpts = {
   dbPath: string;
   sqlType: SqlType;
 };
