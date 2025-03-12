@@ -1,6 +1,6 @@
 import { parseArgs } from "@cli/parse-args";
 import createMigrationFiles from "../src/createMigrationFiles.ts";
-import { migrateAll } from "../src/migrations.ts";
+import * as migrations from "../src/migrations.ts";
 import { connect } from "../src/db/mod.ts";
 
 type ArgDef = {
@@ -26,16 +26,13 @@ type CommandDef = {
   args: ArgDef[];
 };
 
-type Command = {
-  type: "create";
-  name: string;
-  dir: string;
-} | {
-  type: "help";
-} | {
-  type: "migrate:all",
-  dir: string;
-};
+type Command =
+  | { type: "help" }
+  // alias for help
+  | { type: "h" }
+  | { type: "create"; name: string; dir: string }
+  | { type: "migrate"; dir: string; one: boolean }
+  | { type: "rollback"; dir: string; one: boolean };
 
 const COMMAND_DEFS: CommandDef[] = [
   {
@@ -67,9 +64,10 @@ const COMMAND_DEFS: CommandDef[] = [
     ],
   },
   {
-    name: "migrate:all",
-    short: "a",
-    description: "Run all migrations in the migrations directory.",
+    name: "migrate",
+    short: "m",
+    description:
+      "Run migrations in the migrations directory. If the one option is provided, it will only run a single migration.",
     args: [
       {
         name: "dir",
@@ -77,6 +75,33 @@ const COMMAND_DEFS: CommandDef[] = [
         description:
           "A path to a directory to create the migration, if any. Defaults to the directory where this command is run.",
         type: "string",
+      },
+      {
+        name: "one",
+        short: "o",
+        description: "Run only the next available migration",
+        type: "boolean",
+      },
+    ],
+  },
+  {
+    name: "rollback",
+    short: "r",
+    description:
+      "Rollback all migrations. If the one option is provided, it will only run a single rollback.",
+    args: [
+      {
+        name: "dir",
+        short: "d",
+        description:
+          "A path to a directory to create the migration, if any. Defaults to the directory where this command is run.",
+        type: "string",
+      },
+      {
+        name: "one",
+        short: "o",
+        description: "Rollback only the last available migration",
+        type: "boolean",
       },
     ],
   },
@@ -144,7 +169,7 @@ function genParseOpts(): Parameters<typeof parseArgs>[1] {
   );
 }
 
-function getValueFromFlags(
+function getValueFromFlags<R = null>(
   flags: ReturnType<typeof parseArgs>,
   arg: ArgDef,
 ): "string" | "boolean" | null {
@@ -202,21 +227,26 @@ function parseCliInput(): Command {
     return { type: "help" };
   }
 
-  if (cmd.name === "help") {
+  if (["help", "h"].includes(cmd.name)) {
     return { type: "help" };
   }
 
-  // create
-  if (cmd.name === "create") {
+  if (["create", "c"].includes(cmd.name)) {
     const name = getValueFromFlags(flags, cmd.args[0]) as string;
     const dir = getValueFromFlags(flags, cmd.args[1]) ?? Deno.cwd();
     return { type: "create", name, dir };
   }
 
-  // migrate all
-  if (cmd.name === "migrate:all") {
+  if (["migrate", "m"].includes(cmd.name)) {
     const dir = getValueFromFlags(flags, cmd.args[0]) ?? Deno.cwd();
-    return { type: "migrate:all", dir };
+    const one = (getValueFromFlags(flags, cmd.args[1]) ?? false) as boolean;
+    return { type: "migrate", dir, one };
+  }
+
+  if (["rollback", "r"].includes(cmd.name)) {
+    const dir = getValueFromFlags(flags, cmd.args[0]) ?? Deno.cwd();
+    const one = (getValueFromFlags(flags, cmd.args[1]) ?? false) as boolean;
+    return { type: "rollback", dir, one };
   }
 
   return { type: "help" };
@@ -234,9 +264,28 @@ function main() {
       createMigrationFiles(cmd.name, cmd.dir);
       break;
     }
-    case "migrate:all": {
-      const connection = connect({ dbPath: 'resources/test.db', type: 'sqlite3' })
-      migrateAll(connection.db, cmd.dir);
+    case "migrate": {
+      const connection = connect({
+        dbPath: "resources/test.db",
+        type: "sqlite3",
+      });
+      if (cmd.one) {
+        migrations.migrateOne(connection.db, cmd.dir);
+      } else {
+        migrations.migrateAll(connection.db, cmd.dir);
+      }
+      break;
+    }
+    case "rollback": {
+      const connection = connect({
+        dbPath: "resources/test.db",
+        type: "sqlite3",
+      });
+      if (cmd.one) {
+        migrations.rollbackOne(connection.db, cmd.dir);
+      } else {
+        migrations.rollbackAll(connection.db, cmd.dir);
+      }
       break;
     }
     default: {

@@ -10,7 +10,6 @@ type Migration = {
   createdAt: string;
 };
 
-
 const DEFAULT_MIGRATIONS_TABLE = "migrations";
 
 // UTILS
@@ -46,7 +45,7 @@ function createMigrationsTable(db: DB, migrationsTable: string) {
       name TEXT PRIMARY KEY,
       created_at TEXT NOT NULL
     );
-  `
+  `;
   return db.exec(sql);
 }
 
@@ -164,8 +163,10 @@ async function rollbackFromName(
 
 export async function rollbackOne(
   db: DB,
-  migrationsPath: string,
-  migrationsTable: string,
+  /** path to defaults to where this command is run */
+  migrationsPath: string = Deno.cwd(),
+  /** path to defaults to 'migrations' */
+  migrationsTable: string = DEFAULT_MIGRATIONS_TABLE,
 ) {
   const [lastMigration] = getMigrations(db, migrationsTable).reverse();
 
@@ -184,8 +185,10 @@ export async function rollbackOne(
 
 export async function rollbackAll(
   db: DB,
-  migrationsPath: string,
-  migrationsTable: string,
+  /** path to defaults to where this command is run */
+  migrationsPath: string = Deno.cwd(),
+  /** path to defaults to 'migrations' */
+  migrationsTable: string = DEFAULT_MIGRATIONS_TABLE,
 ) {
   const migrations = getMigrations(db, migrationsTable).reverse();
 
@@ -201,8 +204,10 @@ export async function rollbackAll(
 
 export async function migrateOne(
   db: DB,
-  migrationsPath: string,
-  migrationsTable: string,
+  /** path to defaults to where this command is run */
+  migrationsPath: string = Deno.cwd(),
+  /** path to defaults to 'migrations' */
+  migrationsTable: string = DEFAULT_MIGRATIONS_TABLE,
 ) {
   if (!tableExists(db, migrationsTable)) {
     createMigrationsTable(db, migrationsTable);
