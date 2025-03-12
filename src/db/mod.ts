@@ -4,14 +4,23 @@
  * # Example
  *
  * ```ts
- * import { db } from "@aburd/rove";
- *
+ * import { db, migrations } from "@aburd/rove";
+ * 
  * const connection = db.connect({
  *   dbPath: "resources/test.db",
  *   sqlType: "sqlite3",
  * });
- *
+ * 
+ * // Runs a single migration
  * migrations.migrateOne(connection.db, "migrations");
+ * // Run the next migration
+ * migrations.migrateOne(connection.db, "migrations");
+ * // Run all remaining migrations
+ * migrations.migrateAll(connection.db, "migrations");
+ * // Rollback the last migration
+ * migrations.rollbackOne(connection.db, "migrations");
+ * // Rollback all migrations
+ * migrations.rollbackAll(connection.db, "migrations");
  * ```
  *
  * @module
