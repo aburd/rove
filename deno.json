@@ -9,9 +9,9 @@
   },
   "imports": {
     "@db/sqlite": "jsr:@db/sqlite@^0.12.0",
-    "@cli/parse-args": "jsr:@std/cli/parse-args",
-    "@std/path": "jsr:@std/path",
-    "@std/fs/exists": "jsr:@std/fs/exists"
+    "@std/cli": "jsr:@std/cli@^1.0.14",
+    "@std/path": "jsr:@std/path@^1.0.8",
+    "@std/fs": "jsr:@std/fs@^1.0.14"
   },
   "exclude": [
     ".git"

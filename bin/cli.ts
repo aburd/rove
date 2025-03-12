@@ -1,4 +1,4 @@
-import { parseArgs } from "@cli/parse-args";
+import { parseArgs } from "@std/cli";
 import { createMigrationFiles } from "../src/createMigrationFiles.ts";
 import * as migrations from "../src/migrations.ts";
 import { connect } from "../src/db/mod.ts";
@@ -176,7 +176,10 @@ function usage() {
   return `rove <command>
 where <command> is one of:
 
-${COMMAND_DEFS.map(d => `- ${d.name} ${d.short ? `or ${d.short}` : ''}`).join("\n")}
+${
+    COMMAND_DEFS.map((d) => `- ${d.name} ${d.short ? `or ${d.short}` : ""}`)
+      .join("\n")
+  }
 
 You can get more info on any command by using:
 rove <command> -h
@@ -362,7 +365,6 @@ async function dispatchAction(action: Action) {
       break;
     }
     case "migrate": {
-      console.log({ action });
       const connection = connect({
         dbPath: action.dbPath,
         sqlType: action.sqlType,

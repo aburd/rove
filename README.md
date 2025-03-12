@@ -24,15 +24,15 @@ const connection = connect({
 });
 
 // Runs a single migration
-migrations.migrateOne(connection.db, 'migrations');
+migrations.migrateOne(connection.db, "migrations");
 // Run the next migration
-migrations.migrateOne(connection.db, 'migrations');
+migrations.migrateOne(connection.db, "migrations");
 // Run all remaining migrations
-migrations.migrateAll(connection.db, 'migrations');
+migrations.migrateAll(connection.db, "migrations");
 // Rollback the last migration
 migrations.rollbackOne(connection.db, "migrations");
 // Rollback all migrations
-migrations.rollbackAll(connection.db, 'migrations');
+migrations.rollbackAll(connection.db, "migrations");
 ```
 
 ## As a cli

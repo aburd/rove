@@ -1,5 +1,5 @@
 import * as path from "@std/path";
-import { exists } from "@std/fs/exists";
+import { exists } from "@std/fs";
 import type { SqlType } from "./db/types.ts";
 import { fileToString } from "./util.ts";
 
