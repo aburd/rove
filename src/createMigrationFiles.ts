@@ -39,6 +39,11 @@ async function createFiles(
   return { upFile, downFile };
 }
 
+/**
+ * Create up/down migration files in the migrations directory
+ * @param migrationName name of the migration, will be prefixed with a date value and suffixed with up/down.sql
+ * @param dirPath the path to the the migration files
+ */
 export async function createMigrationFiles(
   migrationName: string,
   dirPath: string,

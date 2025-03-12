@@ -3,6 +3,9 @@ import { exists } from "@std/fs";
 import type { SqlType } from "./db/types.ts";
 import { fileToString } from "./util.ts";
 
+/**
+ * Base configuration for Rove, mostly for usage with CLI
+ */
 export type RoveConfig = {
   sqlType: SqlType;
   dbPath?: string;

@@ -1,7 +1,9 @@
 import type { Connection, SqlType } from "./types.ts";
 import * as sqlite from "./sqlite.ts";
 
-export type ConnectOpts = {
+export * from "./types.ts";
+
+type ConnectOpts = {
   dbPath: string;
   sqlType: SqlType;
 };

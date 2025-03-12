@@ -1,13 +1,29 @@
+/**
+ * A connection to a SQL database
+ */
 export type Connection = {
   db: DB;
   [Symbol.dispose]: () => void;
 };
 
+/**
+ * Types of databases we support
+ */
 export type SqlType = "sqlite3";
 
+/**
+ * Parameters for SQL queries that will be sanitized
+ */
 export type BindParams = Record<string, string>;
+/**
+ * Rows from an SQL database
+ */
 export type Row = Record<string, any>;
 
+/**
+ * An interface for interacting with a concrete implementation
+ * of a database
+ */
 export interface DB {
   /** get the db instance */
   getDb(): DB;

@@ -16,9 +16,9 @@ Rove will:
 ## As a library
 
 ```typescript
-import { connect } from "@aburd/rove";
+import { db } from "@aburd/rove";
 
-const connection = connect({
+const connection = db.connect({
   dbPath: "resources/test.db",
   sqlType: "sqlite3",
 });

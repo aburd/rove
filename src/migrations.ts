@@ -154,6 +154,12 @@ async function rollbackFromName(
   runMigrationDown(db, migrationsTable, sql, name);
 }
 
+/**
+ * Rollback one migration in the DB
+ * @param db DB instance
+ * @param migrationsPath Path to a directory with migration files
+ * @param migrationsTable The name of the SQL table where migrations are tracked
+ */
 export async function rollbackOne(
   db: DB,
   /** path to defaults to where this command is run */
@@ -176,6 +182,12 @@ export async function rollbackOne(
   );
 }
 
+/**
+ * Rollback all migrations in the DB
+ * @param db DB instance
+ * @param migrationsPath Path to a directory with migration files
+ * @param migrationsTable The name of the SQL table where migrations are tracked
+ */
 export async function rollbackAll(
   db: DB,
   /** path to defaults to where this command is run */
@@ -195,6 +207,12 @@ export async function rollbackAll(
   }
 }
 
+/**
+ * Run one migration in the migrations directory
+ * @param db DB instance
+ * @param migrationsPath Path to a directory with migration files
+ * @param migrationsTable The name of the SQL table where migrations are tracked
+ */
 export async function migrateOne(
   db: DB,
   /** path to defaults to where this command is run */
@@ -221,6 +239,12 @@ export async function migrateOne(
   console.log(`Successfully migrated.`);
 }
 
+/**
+ * Run migrations in the migrations directory
+ * @param db DB instance
+ * @param migrationsPath Path to a directory with migration files
+ * @param migrationsTable The name of the SQL table where migrations are tracked
+ */
 export async function migrateAll(
   db: DB,
   /** path to defaults to where this command is run */
