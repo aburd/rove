@@ -1,5 +1,5 @@
 import { parseArgs } from "@cli/parse-args";
-import createMigrationFiles from "../src/createMigrationFiles.ts";
+import { createMigrationFiles } from "../src/createMigrationFiles.ts";
 import * as migrations from "../src/migrations.ts";
 import { connect } from "../src/db/mod.ts";
 
@@ -27,7 +27,7 @@ type Command = {
 };
 
 type Action =
-  | { type: "help", command?: Command }
+  | { type: "help"; command?: Command }
   | { type: "create"; name: string; dir: string }
   | { type: "migrate"; dir: string; one: boolean }
   | { type: "rollback"; dir: string; one: boolean };
@@ -118,7 +118,7 @@ function argUsage({ name, short, description, type }: Arg) {
 function commandUsage({ name, description, args }: Command) {
   return [
     `* ${name} - ${description}`,
-    '',
+    "",
     `usage: ${name} ${args.map((a) => `<${a.name}>`).join(" ")}`,
     args
       .map(argUsage)
@@ -207,11 +207,13 @@ function checkRequiredArgs(
 function parseCliInputToCommand(): [Command, ReturnType<typeof parseArgs>] {
   const flags = parseArgs(Deno.args, genParseOpts());
   const [commandInput] = flags._;
-  const command = COMMAND_DEFS.find((c) => [c.name, c.short].includes(commandInput as string) );
+  const command = COMMAND_DEFS.find((c) =>
+    [c.name, c.short].includes(commandInput as string)
+  );
 
   // help
   if (!command || flags.h) {
-    dispatchAction({ type: "help", command })
+    dispatchAction({ type: "help", command });
     Deno.exit(0);
   }
 
@@ -223,10 +225,13 @@ function parseCliInputToCommand(): [Command, ReturnType<typeof parseArgs>] {
     Deno.exit(1);
   }
 
-  return [command, flags]
+  return [command, flags];
 }
 
-function commandToAction(command: Command, flags: ReturnType<typeof parseArgs>): Action {
+function commandToAction(
+  command: Command,
+  flags: ReturnType<typeof parseArgs>,
+): Action {
   if (["help", "h"].includes(command.name)) {
     return { type: "help" };
   }
@@ -296,7 +301,7 @@ function main() {
   const [command, flags] = parseCliInputToCommand();
   const action = commandToAction(command, flags);
 
-  dispatchAction(action); 
+  dispatchAction(action);
   Deno.exit(0);
 }
 
