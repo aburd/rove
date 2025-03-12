@@ -1,5 +1,5 @@
-import type { DB } from "./db/types.ts";
-import { fileToString } from "./util.ts";
+import type { DB } from "../db/types.ts";
+import { fileToString } from "../util.ts";
 
 type MigrationRecord = {
   name: string;

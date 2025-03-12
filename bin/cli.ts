@@ -1,6 +1,5 @@
 import { parseArgs } from "@std/cli";
-import { createMigrationFiles } from "../src/createMigrationFiles.ts";
-import * as migrations from "../src/migrations.ts";
+import * as migrations from "../src/migrations/mod.ts";
 import { connect } from "../src/db/mod.ts";
 import { getRoveConfig, type RoveConfig } from "../src/config.ts";
 import type { SqlType } from "../src/db/types.ts";
@@ -361,7 +360,7 @@ async function dispatchAction(action: Action) {
       break;
     }
     case "create": {
-      await createMigrationFiles(action.name, action.dir);
+      await migrations.createMigrationFiles(action.name, action.dir);
       break;
     }
     case "migrate": {
