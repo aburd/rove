@@ -27,7 +27,7 @@ type CommandDef = {
 };
 
 type Command =
-  | { type: "help" }
+  | { type: "help", commandDef?: CommandDef }
   // alias for help
   | { type: "h" }
   | { type: "create"; name: string; dir: string }
@@ -116,9 +116,11 @@ function argUsage({ name, short, description, type }: ArgDef) {
   return `  --${name} ${short ? `-${short}` : ""} :: ${description}`;
 }
 
-function commandUsage({ name, args }: CommandDef) {
+function commandUsage({ name, description, args }: CommandDef) {
   return [
-    ` ${name} ${args.map((a) => `<${a.name}>`).join(" ")}`,
+    `* ${name} - ${description}`,
+    '',
+    `usage: ${name} ${args.map((a) => `<${a.name}>`).join(" ")}`,
     args
       .map(argUsage)
       .join("\n"),
@@ -131,7 +133,12 @@ where <command> is one of:
 ${COMMAND_DEFS.map(commandUsage).join("\n")}`;
 }
 
-function printUsage() {
+function printUsage(cmd?: CommandDef) {
+  if (cmd) {
+    console.log(commandUsage(cmd));
+    return;
+  }
+
   console.log(usage());
 }
 
@@ -169,7 +176,7 @@ function genParseOpts(): Parameters<typeof parseArgs>[1] {
   );
 }
 
-function getValueFromFlags<R = null>(
+function getValueFromFlags(
   flags: ReturnType<typeof parseArgs>,
   arg: ArgDef,
 ): "string" | "boolean" | null {
@@ -198,21 +205,17 @@ function checkRequiredArgs(
   return null;
 }
 
-// console.log("Wants help?", flags.help);
-// console.log("Version:", flags.version);
-// console.log("Wants color?:", flags.color);
-
-// └> deno run ./src/createMigrationFiles.ts go -c -v=yeah
-// Wants help? undefined
-// Version: undefined
-// Wants color?: undefined
-// { _: [ "go" ], c: true, v: "yeah", out: "migrations" }
-// console.log(flags)
 function parseCliInput(): Command {
   const flags = parseArgs(Deno.args, genParseOpts());
   const [cmdS] = flags._;
   const cmd = COMMAND_DEFS.find((c) => c.name === cmdS || c.short === cmdS);
   if (!cmd) return { type: "help" };
+
+  // help
+  if (flags.h) {
+    const commandDef = COMMAND_DEFS.find(d => [cmd.name, cmd.short].includes(d.name));
+    return { type: "help", commandDef };
+  }
 
   // Check the arguments are fed correctly
   const e = checkRequiredArgs(flags, cmd);
@@ -220,11 +223,6 @@ function parseCliInput(): Command {
     console.error(e.message);
     console.error(commandUsage(cmd));
     Deno.exit(1);
-  }
-
-  // help
-  if (flags.h) {
-    return { type: "help" };
   }
 
   if (["help", "h"].includes(cmd.name)) {
@@ -257,7 +255,7 @@ function main() {
 
   switch (cmd.type) {
     case "help": {
-      printUsage();
+      printUsage(cmd.commandDef);
       break;
     }
     case "create": {
