@@ -1,13 +1,8 @@
 {
-  "name": "@aburd/sql-migration-manager",
+  "name": "@aburd/rove",
   "version": "0.1.0",
   "license": "GPLv3",
-  "tasks": {
-    "setup": "./tasks/setup.sh",
-    "db:migration:create": "./tasks/create_migration.sh ./database/migrations",
-    "db:migration": "deno run --allow-env --allow-read --allow-write --allow-ffi ./tasks/migrations.ts",
-    "db:migrateAll": "deno run --allow-env --allow-read --allow-write --allow-ffi --allow-net ./tasks/migrateAll.ts"
-  },
+  "tasks": {},
   "exports": {
     ".": "./mod.ts",
     "./cli": "./bin/cli.ts"
@@ -25,5 +20,16 @@
     "semiColons": true,
     "useTabs": false,
     "singleQuote": false
+  },
+  "publish": {
+    "include": [
+      "mod.ts",
+      "bin/cli.ts",
+      "src/*",
+      "README.md",
+      "LICENSE.md",
+      "deno.json",
+      "deno.lock"
+    ]
   }
 }
