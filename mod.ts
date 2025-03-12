@@ -1,4 +1,8 @@
 /**
+ *
+ * A simple SQL migrations library and CLI for deno written in typescript.
+ (
+ * For now, it only supports sqlite3, but I plan to support to other flavors as the need arises.
  * Contains functionality for dealing with databases.
  *
  * # Example
