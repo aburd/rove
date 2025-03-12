@@ -2,7 +2,8 @@
 
 A simple SQL migrations library and CLI for deno written in typescript.
 
-For now, it only supports sqlite3, but I plan to support to other flavors as the need arises.
+For now, it only supports sqlite3, but I plan to support to other flavors as the
+need arises.
 
 ### In a nutshell
 
@@ -19,19 +20,19 @@ import { connect } from "@aburd/rove";
 
 const connection = connect({
   dbPath: "resources/test.db",
-  type: "sqlite3",
+  sqlType: "sqlite3",
 });
 
 // Runs a single migration
-migrations.migrateOne(connection.db, action.dir);
+migrations.migrateOne(connection.db, 'migrations');
 // Run the next migration
-migrations.migrateOne(connection.db, action.dir);
+migrations.migrateOne(connection.db, 'migrations');
 // Run all remaining migrations
-migrations.migrateAll(connection.db, action.dir);
+migrations.migrateAll(connection.db, 'migrations');
 // Rollback the last migration
 migrations.rollbackOne(connection.db, "migrations");
 // Rollback all migrations
-migrations.rollbackAll(connection.db, action.dir);
+migrations.rollbackAll(connection.db, 'migrations');
 ```
 
 ## As a cli
@@ -42,7 +43,8 @@ The above comes with a CLI which is configurable.
 deno run jsr:@aburd/rove/cli
 ```
 
-The options are all well documented through the help option, so please consult that.
+The options are all well documented through the help option, so please consult
+that.
 
 ```
 deno run jsr:@aburd/rove/cli help
@@ -62,8 +64,10 @@ rove.json
 
 ```
 {
-  dbPath: "resources/my.db",
-  type: "sqlite3",
+  "dbPath": "resources/my.db",
+  "sqlType": "sqlite3",
+  "migrationsDir": "migrations",
+  "migrationsTable": "migrations"
 }
 ```
 
@@ -72,4 +76,6 @@ Using environment variables
 ```
 DB_PATH=resources/my.db
 DB_TYPE=SQLITE3
+MIGRATION_DIR=migrations
+MIGRATION_TABLE=migrations
 ```
