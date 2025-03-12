@@ -163,7 +163,7 @@ function commandUsage({ name, description, args }: Command) {
     });
 
   return [
-    `*** ${name} ***\n${description}`,
+    description,
     "",
     `usage: ${name} ${sortedArgs.map(formatArg).join(" ")}`,
     sortedArgs
@@ -175,7 +175,12 @@ function commandUsage({ name, description, args }: Command) {
 function usage() {
   return `rove <command>
 where <command> is one of:
-${COMMAND_DEFS.map(commandUsage).join("\n")}`;
+
+${COMMAND_DEFS.map(d => `- ${d.name} ${d.short ? `or ${d.short}` : ''}`).join("\n")}
+
+You can get more info on any command by using:
+rove <command> -h
+`;
 }
 
 function printUsage(cmd?: Command) {
