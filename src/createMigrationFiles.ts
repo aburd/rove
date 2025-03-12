@@ -1,4 +1,5 @@
 import * as path from "@std/path";
+import { exists } from "@std/fs/exists";
 
 function filenameBase(migrationName: string) {
   const d = new Date();
@@ -19,6 +20,10 @@ async function createFiles(
   const te = new TextEncoder();
   const upFile = path.join(dirPath, filenameUp(b));
   const downFile = path.join(dirPath, filenameDown(b));
+
+  if (!(await exists(dirPath))) {
+    await Deno.mkdir(dirPath);
+  }
 
   await Promise.all([
     Deno.writeFile(
