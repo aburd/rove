@@ -3,7 +3,7 @@ import createMigrationFiles from "../src/createMigrationFiles.ts";
 import * as migrations from "../src/migrations.ts";
 import { connect } from "../src/db/mod.ts";
 
-type ArgDef = {
+type Arg = {
   name: string;
   short?: string;
   description: string;
@@ -19,22 +19,20 @@ type ArgDef = {
   default?: boolean;
 };
 
-type CommandDef = {
+type Command = {
   name: string;
   short?: string;
   description: string;
-  args: ArgDef[];
+  args: Arg[];
 };
 
-type Command =
-  | { type: "help", commandDef?: CommandDef }
-  // alias for help
-  | { type: "h" }
+type Action =
+  | { type: "help", command?: Command }
   | { type: "create"; name: string; dir: string }
   | { type: "migrate"; dir: string; one: boolean }
   | { type: "rollback"; dir: string; one: boolean };
 
-const COMMAND_DEFS: CommandDef[] = [
+const COMMAND_DEFS: Command[] = [
   {
     name: "help",
     short: "h",
@@ -107,16 +105,17 @@ const COMMAND_DEFS: CommandDef[] = [
   },
 ] as const;
 
-function argUsage({ name, short, description, type }: ArgDef) {
+function argUsage({ name, short, description, type }: Arg) {
   if (type === "string") {
     return `  --${name}='${name}' ${
       short ? `-${short} '${name}'` : ""
     } :: ${description}`;
   }
+
   return `  --${name} ${short ? `-${short}` : ""} :: ${description}`;
 }
 
-function commandUsage({ name, description, args }: CommandDef) {
+function commandUsage({ name, description, args }: Command) {
   return [
     `* ${name} - ${description}`,
     '',
@@ -133,7 +132,7 @@ where <command> is one of:
 ${COMMAND_DEFS.map(commandUsage).join("\n")}`;
 }
 
-function printUsage(cmd?: CommandDef) {
+function printUsage(cmd?: Command) {
   if (cmd) {
     console.log(commandUsage(cmd));
     return;
@@ -178,7 +177,7 @@ function genParseOpts(): Parameters<typeof parseArgs>[1] {
 
 function getValueFromFlags(
   flags: ReturnType<typeof parseArgs>,
-  arg: ArgDef,
+  arg: Arg,
 ): "string" | "boolean" | null {
   if (arg.short && flags[arg.short] !== undefined) {
     return flags[arg.short];
@@ -192,7 +191,7 @@ function getValueFromFlags(
 
 function checkRequiredArgs(
   flags: ReturnType<typeof parseArgs>,
-  cmd: CommandDef,
+  cmd: Command,
 ): Error | null {
   const requiredArgs = cmd.args.filter((c) => c.required);
   for (const requiredArg of requiredArgs) {
@@ -205,61 +204,62 @@ function checkRequiredArgs(
   return null;
 }
 
-function parseCliInput(): Command {
+function parseCliInputToCommand(): [Command, ReturnType<typeof parseArgs>] {
   const flags = parseArgs(Deno.args, genParseOpts());
-  const [cmdS] = flags._;
-  const cmd = COMMAND_DEFS.find((c) => c.name === cmdS || c.short === cmdS);
-  if (!cmd) return { type: "help" };
+  const [commandInput] = flags._;
+  const command = COMMAND_DEFS.find((c) => [c.name, c.short].includes(commandInput as string) );
 
   // help
-  if (flags.h) {
-    const commandDef = COMMAND_DEFS.find(d => [cmd.name, cmd.short].includes(d.name));
-    return { type: "help", commandDef };
+  if (!command || flags.h) {
+    dispatchAction({ type: "help", command })
+    Deno.exit(0);
   }
 
   // Check the arguments are fed correctly
-  const e = checkRequiredArgs(flags, cmd);
+  const e = checkRequiredArgs(flags, command);
   if (e) {
     console.error(e.message);
-    console.error(commandUsage(cmd));
+    console.error(commandUsage(command));
     Deno.exit(1);
   }
 
-  if (["help", "h"].includes(cmd.name)) {
+  return [command, flags]
+}
+
+function commandToAction(command: Command, flags: ReturnType<typeof parseArgs>): Action {
+  if (["help", "h"].includes(command.name)) {
     return { type: "help" };
   }
 
-  if (["create", "c"].includes(cmd.name)) {
-    const name = getValueFromFlags(flags, cmd.args[0]) as string;
-    const dir = getValueFromFlags(flags, cmd.args[1]) ?? Deno.cwd();
+  if (["create", "c"].includes(command.name)) {
+    const name = getValueFromFlags(flags, command.args[0]) as string;
+    const dir = getValueFromFlags(flags, command.args[1]) ?? Deno.cwd();
     return { type: "create", name, dir };
   }
 
-  if (["migrate", "m"].includes(cmd.name)) {
-    const dir = getValueFromFlags(flags, cmd.args[0]) ?? Deno.cwd();
-    const one = (getValueFromFlags(flags, cmd.args[1]) ?? false) as boolean;
+  if (["migrate", "m"].includes(command.name)) {
+    const dir = getValueFromFlags(flags, command.args[0]) ?? Deno.cwd();
+    const one = (getValueFromFlags(flags, command.args[1]) ?? false) as boolean;
     return { type: "migrate", dir, one };
   }
 
-  if (["rollback", "r"].includes(cmd.name)) {
-    const dir = getValueFromFlags(flags, cmd.args[0]) ?? Deno.cwd();
-    const one = (getValueFromFlags(flags, cmd.args[1]) ?? false) as boolean;
+  if (["rollback", "r"].includes(command.name)) {
+    const dir = getValueFromFlags(flags, command.args[0]) ?? Deno.cwd();
+    const one = (getValueFromFlags(flags, command.args[1]) ?? false) as boolean;
     return { type: "rollback", dir, one };
   }
 
   return { type: "help" };
 }
 
-function main() {
-  const cmd = parseCliInput();
-
-  switch (cmd.type) {
+function dispatchAction(action: Action) {
+  switch (action.type) {
     case "help": {
-      printUsage(cmd.commandDef);
+      printUsage(action.command);
       break;
     }
     case "create": {
-      createMigrationFiles(cmd.name, cmd.dir);
+      createMigrationFiles(action.name, action.dir);
       break;
     }
     case "migrate": {
@@ -267,10 +267,10 @@ function main() {
         dbPath: "resources/test.db",
         type: "sqlite3",
       });
-      if (cmd.one) {
-        migrations.migrateOne(connection.db, cmd.dir);
+      if (action.one) {
+        migrations.migrateOne(connection.db, action.dir);
       } else {
-        migrations.migrateAll(connection.db, cmd.dir);
+        migrations.migrateAll(connection.db, action.dir);
       }
       break;
     }
@@ -279,10 +279,10 @@ function main() {
         dbPath: "resources/test.db",
         type: "sqlite3",
       });
-      if (cmd.one) {
-        migrations.rollbackOne(connection.db, cmd.dir);
+      if (action.one) {
+        migrations.rollbackOne(connection.db, action.dir);
       } else {
-        migrations.rollbackAll(connection.db, cmd.dir);
+        migrations.rollbackAll(connection.db, action.dir);
       }
       break;
     }
@@ -290,6 +290,14 @@ function main() {
       printUsage();
     }
   }
+}
+
+function main() {
+  const [command, flags] = parseCliInputToCommand();
+  const action = commandToAction(command, flags);
+
+  dispatchAction(action); 
+  Deno.exit(0);
 }
 
 main();
