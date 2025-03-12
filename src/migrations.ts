@@ -10,6 +10,9 @@ type Migration = {
   createdAt: string;
 };
 
+
+const DEFAULT_MIGRATIONS_TABLE = "migrations";
+
 // UTILS
 async function fileToString(path: string): Promise<string> {
   const decoder = new TextDecoder("utf-8");
@@ -38,12 +41,13 @@ function getMigrations(db: DB, migrationsTable: string): Migration[] {
 }
 
 function createMigrationsTable(db: DB, migrationsTable: string) {
-  return db.exec(`
+  const sql = `
     CREATE TABLE IF NOT EXISTS ${migrationsTable} (
       name TEXT PRIMARY KEY,
       created_at TEXT NOT NULL
     );
-  `);
+  `
+  return db.exec(sql);
 }
 
 function createMigration(
@@ -64,10 +68,10 @@ function createMigration(
 function deleteMigration(db: DB, migrationsTable: string, name: string) {
   return db.exec(
     `
-    DELETE FROM :migrationsTable
+    DELETE FROM ${migrationsTable}
     WHERE name = :name
   `,
-    { migrationsTable, name },
+    { name },
   );
 }
 
@@ -160,8 +164,8 @@ async function rollbackFromName(
 
 export async function rollbackOne(
   db: DB,
-  migrationsTable: string,
   migrationsPath: string,
+  migrationsTable: string,
 ) {
   const [lastMigration] = getMigrations(db, migrationsTable).reverse();
 
@@ -180,8 +184,8 @@ export async function rollbackOne(
 
 export async function rollbackAll(
   db: DB,
-  migrationsTable: string,
   migrationsPath: string,
+  migrationsTable: string,
 ) {
   const migrations = getMigrations(db, migrationsTable).reverse();
 
@@ -197,8 +201,8 @@ export async function rollbackAll(
 
 export async function migrateOne(
   db: DB,
-  migrationsTable: string,
   migrationsPath: string,
+  migrationsTable: string,
 ) {
   if (!tableExists(db, migrationsTable)) {
     createMigrationsTable(db, migrationsTable);
@@ -221,8 +225,10 @@ export async function migrateOne(
 
 export async function migrateAll(
   db: DB,
-  migrationsTable: string,
-  migrationsPath: string,
+  /** path to defaults to where this command is run */
+  migrationsPath: string = Deno.cwd(),
+  /** path to defaults to 'migrations' */
+  migrationsTable: string = DEFAULT_MIGRATIONS_TABLE,
 ) {
   if (!tableExists(db, migrationsTable)) {
     createMigrationsTable(db, migrationsTable);

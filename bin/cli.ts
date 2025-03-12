@@ -1,5 +1,7 @@
 import { parseArgs } from "@cli/parse-args";
 import createMigrationFiles from "../src/createMigrationFiles.ts";
+import { migrateAll } from "../src/migrations.ts";
+import { connect } from "../src/db/mod.ts";
 
 type ArgDef = {
   name: string;
@@ -30,6 +32,9 @@ type Command = {
   dir: string;
 } | {
   type: "help";
+} | {
+  type: "migrate:all",
+  dir: string;
 };
 
 const COMMAND_DEFS: CommandDef[] = [
@@ -52,6 +57,20 @@ const COMMAND_DEFS: CommandDef[] = [
         type: "string",
         required: true,
       },
+      {
+        name: "dir",
+        short: "d",
+        description:
+          "A path to a directory to create the migration, if any. Defaults to the directory where this command is run.",
+        type: "string",
+      },
+    ],
+  },
+  {
+    name: "migrate:all",
+    short: "a",
+    description: "Run all migrations in the migrations directory.",
+    args: [
       {
         name: "dir",
         short: "d",
@@ -194,6 +213,12 @@ function parseCliInput(): Command {
     return { type: "create", name, dir };
   }
 
+  // migrate all
+  if (cmd.name === "migrate:all") {
+    const dir = getValueFromFlags(flags, cmd.args[0]) ?? Deno.cwd();
+    return { type: "migrate:all", dir };
+  }
+
   return { type: "help" };
 }
 
@@ -207,6 +232,11 @@ function main() {
     }
     case "create": {
       createMigrationFiles(cmd.name, cmd.dir);
+      break;
+    }
+    case "migrate:all": {
+      const connection = connect({ dbPath: 'resources/test.db', type: 'sqlite3' })
+      migrateAll(connection.db, cmd.dir);
       break;
     }
     default: {
