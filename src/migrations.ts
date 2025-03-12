@@ -1,4 +1,5 @@
 import type { DB } from "./db/types.ts";
+import { fileToString } from "./util.ts";
 
 type MigrationRecord = {
   name: string;
@@ -11,14 +12,6 @@ type Migration = {
 };
 
 const DEFAULT_MIGRATIONS_TABLE = "migrations";
-
-// UTILS
-async function fileToString(path: string): Promise<string> {
-  const decoder = new TextDecoder("utf-8");
-  const data = await Deno.readFile(path);
-
-  return decoder.decode(data);
-}
 
 // MIGRATIONS TABLE QUERY
 function tableExists(db: DB, tableName: string) {

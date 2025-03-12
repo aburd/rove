@@ -1,4 +1,4 @@
-import * as path from "jsr:@std/path";
+import * as path from "@std/path";
 
 function filenameBase(migrationName: string) {
   const d = new Date();
