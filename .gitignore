@@ -1,3 +1,4 @@
 .vim
 resources/test.db
 resources/*.sql
+migrations/*
