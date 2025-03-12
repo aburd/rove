@@ -68,7 +68,8 @@
   "workspace": {
     "dependencies": [
       "jsr:@db/sqlite@0.12",
-      "jsr:@std/cli@*"
+      "jsr:@std/cli@*",
+      "jsr:@std/path@*"
     ]
   }
 }
