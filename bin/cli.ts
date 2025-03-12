@@ -2,6 +2,9 @@ import { parseArgs } from "@cli/parse-args";
 import { createMigrationFiles } from "../src/createMigrationFiles.ts";
 import * as migrations from "../src/migrations.ts";
 import { connect } from "../src/db/mod.ts";
+import { getRoveConfig, type RoveConfig } from "../src/config.ts";
+import type { SqlType } from "../src/db/types.ts";
+import * as path from "@std/path";
 
 type Arg = {
   name: string;
@@ -29,8 +32,22 @@ type Command = {
 type Action =
   | { type: "help"; command?: Command }
   | { type: "create"; name: string; dir: string }
-  | { type: "migrate"; dir: string; one: boolean }
-  | { type: "rollback"; dir: string; one: boolean };
+  | {
+    type: "migrate";
+    dir: string;
+    one: boolean;
+    dbPath: string;
+    migrationsTable: string;
+    sqlType: SqlType;
+  }
+  | {
+    type: "rollback";
+    dir: string;
+    one: boolean;
+    dbPath: string;
+    migrationsTable: string;
+    sqlType: SqlType;
+  };
 
 const COMMAND_DEFS: Command[] = [
   {
@@ -80,6 +97,12 @@ const COMMAND_DEFS: Command[] = [
         description: "Run only the next available migration",
         type: "boolean",
       },
+      {
+        name: "dbpath",
+        short: "p",
+        description: "Path to the DB",
+        type: "string",
+      },
     ],
   },
   {
@@ -101,26 +124,49 @@ const COMMAND_DEFS: Command[] = [
         description: "Rollback only the last available migration",
         type: "boolean",
       },
+      {
+        name: "dbpath",
+        short: "p",
+        description: "Path to the DB",
+        type: "string",
+      },
     ],
   },
 ] as const;
 
-function argUsage({ name, short, description, type }: Arg) {
+function argUsage({ name, short, description, type, required }: Arg) {
   if (type === "string") {
-    return `  --${name}='${name}' ${
-      short ? `-${short} '${name}'` : ""
-    } :: ${description}`;
+    return `  ${name} ${short ? `(-${short})` : ""} ${
+      required ? "" : "<optional>"
+    }:: ${description}`;
   }
 
-  return `  --${name} ${short ? `-${short}` : ""} :: ${description}`;
+  return `  ${name} ${short ? `(-${short})` : ""} ${
+    required ? "" : "<optional>"
+  }:: ${description}`;
+}
+
+function formatArg({ name, required, type }: Arg) {
+  const requiredFmt = (s: string) => required ? s : `(${s})`;
+
+  return requiredFmt(
+    type === "string" ? `--${name}=${name}` : `--${name}`,
+  );
 }
 
 function commandUsage({ name, description, args }: Command) {
+  const sortedArgs = args
+    .toSorted((a, b) => {
+      if (a.required && b.required) return 0;
+      if (a.required && !b.required) return -1;
+      return 1;
+    });
+
   return [
-    `* ${name} - ${description}`,
+    `*** ${name} ***\n${description}`,
     "",
-    `usage: ${name} ${args.map((a) => `<${a.name}>`).join(" ")}`,
-    args
+    `usage: ${name} ${sortedArgs.map(formatArg).join(" ")}`,
+    sortedArgs
       .map(argUsage)
       .join("\n"),
   ].join("\n") + "\n";
@@ -231,6 +277,7 @@ function parseCliInputToCommand(): [Command, ReturnType<typeof parseArgs>] {
 function commandToAction(
   command: Command,
   flags: ReturnType<typeof parseArgs>,
+  config: RoveConfig,
 ): Action {
   if (["help", "h"].includes(command.name)) {
     return { type: "help" };
@@ -238,56 +285,115 @@ function commandToAction(
 
   if (["create", "c"].includes(command.name)) {
     const name = getValueFromFlags(flags, command.args[0]) as string;
-    const dir = getValueFromFlags(flags, command.args[1]) ?? Deno.cwd();
-    return { type: "create", name, dir };
+    const dir = getValueFromFlags(flags, command.args[1]) ??
+      config?.migrationsDir;
+
+    return {
+      type: "create",
+      name,
+      dir: path.isAbsolute(dir) ? dir : path.join(Deno.cwd(), dir),
+    };
   }
 
   if (["migrate", "m"].includes(command.name)) {
-    const dir = getValueFromFlags(flags, command.args[0]) ?? Deno.cwd();
+    const dir = getValueFromFlags(flags, command.args[0]) ??
+      config.migrationsDir;
     const one = (getValueFromFlags(flags, command.args[1]) ?? false) as boolean;
-    return { type: "migrate", dir, one };
+    const dbPath = getValueFromFlags(flags, command.args[2]) ?? config.dbPath;
+    if (!dbPath) {
+      console.error(
+        `A db path must be configured either with the ${
+          command.args[2].name
+        } option, or config file.`,
+      );
+      Deno.exit(1);
+    }
+
+    return {
+      type: "migrate",
+      dir: path.isAbsolute(dir) ? dir : path.join(Deno.cwd(), dir),
+      one,
+      sqlType: config.sqlType,
+      dbPath,
+      migrationsTable: config.migrationsTable,
+    };
   }
 
   if (["rollback", "r"].includes(command.name)) {
-    const dir = getValueFromFlags(flags, command.args[0]) ?? Deno.cwd();
+    const dir = getValueFromFlags(flags, command.args[0]) ??
+      config.migrationsDir;
     const one = (getValueFromFlags(flags, command.args[1]) ?? false) as boolean;
-    return { type: "rollback", dir, one };
+    const dbPath = getValueFromFlags(flags, command.args[2]) ?? config.dbPath;
+    if (!dbPath) {
+      console.error(
+        `A db path must be configured either with the ${
+          command.args[2].name
+        } option, or config file.`,
+      );
+      Deno.exit(1);
+    }
+
+    return {
+      type: "rollback",
+      dir: path.isAbsolute(dir) ? dir : path.join(Deno.cwd(), dir),
+      one,
+      sqlType: config.sqlType,
+      dbPath,
+      migrationsTable: config.migrationsTable,
+    };
   }
 
   return { type: "help" };
 }
 
-function dispatchAction(action: Action) {
+async function dispatchAction(action: Action) {
   switch (action.type) {
     case "help": {
       printUsage(action.command);
       break;
     }
     case "create": {
-      createMigrationFiles(action.name, action.dir);
+      await createMigrationFiles(action.name, action.dir);
       break;
     }
     case "migrate": {
+      console.log({ action });
       const connection = connect({
-        dbPath: "resources/test.db",
-        type: "sqlite3",
+        dbPath: action.dbPath,
+        sqlType: action.sqlType,
       });
       if (action.one) {
-        migrations.migrateOne(connection.db, action.dir);
+        await migrations.migrateOne(
+          connection.db,
+          action.dir,
+          action.migrationsTable,
+        );
       } else {
-        migrations.migrateAll(connection.db, action.dir);
+        await migrations.migrateAll(
+          connection.db,
+          action.dir,
+          action.migrationsTable,
+        );
       }
       break;
     }
     case "rollback": {
       const connection = connect({
-        dbPath: "resources/test.db",
-        type: "sqlite3",
+        dbPath: action.dbPath,
+        sqlType: action.sqlType,
       });
       if (action.one) {
-        migrations.rollbackOne(connection.db, action.dir);
+        await migrations.rollbackOne(
+          connection.db,
+          action.dir,
+          action.migrationsTable,
+        );
       } else {
-        migrations.rollbackAll(connection.db, action.dir);
+        await migrations.rollbackAll(
+          connection.db,
+          action.dir,
+          action.migrationsTable,
+        );
       }
       break;
     }
@@ -297,11 +403,12 @@ function dispatchAction(action: Action) {
   }
 }
 
-function main() {
+async function main() {
+  const config = await getRoveConfig();
   const [command, flags] = parseCliInputToCommand();
-  const action = commandToAction(command, flags);
+  const action = commandToAction(command, flags, config);
 
-  dispatchAction(action);
+  await dispatchAction(action);
   Deno.exit(0);
 }
 

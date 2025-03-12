@@ -3,14 +3,14 @@ import * as sqlite from "./sqlite.ts";
 
 export type ConnectOpts = {
   dbPath: string;
-  type: SqlType;
+  sqlType: SqlType;
 };
 
 /** connect to the DB */
 export function connect(connectOpts: ConnectOpts): Connection {
-  if (connectOpts.type === "sqlite3") {
+  if (connectOpts.sqlType === "sqlite3") {
     return sqlite.getConnection(connectOpts.dbPath);
   }
 
-  throw new Error(`Unsupported DB type ${connectOpts.type} given`);
+  throw new Error(`Unsupported DB type ${connectOpts.sqlType} given`);
 }
