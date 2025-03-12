@@ -10,7 +10,8 @@
   "imports": {
     "@db/sqlite": "jsr:@db/sqlite@^0.12.0",
     "@cli/parse-args": "jsr:@std/cli/parse-args",
-    "@std/path": "jsr:@std/path"
+    "@std/path": "jsr:@std/path",
+    "@std/fs/exists": "jsr:@std/fs/exists"
   },
   "exclude": [
     ".git"

@@ -8,6 +8,7 @@
     "jsr:@std/cli@*": "1.0.8",
     "jsr:@std/encoding@0.221": "0.221.0",
     "jsr:@std/fmt@0.221": "0.221.0",
+    "jsr:@std/fs@*": "0.221.0",
     "jsr:@std/fs@0.221": "0.221.0",
     "jsr:@std/path@*": "0.221.0",
     "jsr:@std/path@0.217": "0.217.0",
@@ -26,7 +27,7 @@
       "dependencies": [
         "jsr:@std/encoding",
         "jsr:@std/fmt",
-        "jsr:@std/fs",
+        "jsr:@std/fs@0.221",
         "jsr:@std/path@0.221"
       ]
     },
@@ -69,6 +70,7 @@
     "dependencies": [
       "jsr:@db/sqlite@0.12",
       "jsr:@std/cli@*",
+      "jsr:@std/fs@*",
       "jsr:@std/path@*"
     ]
   }

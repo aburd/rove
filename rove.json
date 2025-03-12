@@ -1,0 +1,4 @@
+{
+  "sqlType": "sqlite3",
+  "dbPath": "resources/test.db"
+}
