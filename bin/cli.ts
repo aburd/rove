@@ -24,7 +24,6 @@ type CommandDef = {
   args: ArgDef[];
 };
 
-
 type Command = {
   type: "create";
   name: string;
@@ -198,7 +197,6 @@ function parseCliInput(): Command {
   return { type: "help" };
 }
 
-
 function main() {
   const cmd = parseCliInput();
 
@@ -208,7 +206,7 @@ function main() {
       break;
     }
     case "create": {
-      createMigrationFiles(cmd.name, cmd.dir)
+      createMigrationFiles(cmd.name, cmd.dir);
       break;
     }
     default: {

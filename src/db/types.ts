@@ -14,9 +14,9 @@ export interface DB {
   /** close the database connection safely */
   closeDb(): void;
   /** exec some sql, return the number of affected rows */
-  exec(sql: string, bindParams: BindParams): number;
+  exec(sql: string, bindParams?: BindParams): number;
   /** give some sql and some bind parameters */
-  sql<R extends object = Row>(sql: string, bindParams: BindParams): R[]; 
+  sql<R extends object = Row>(sql: string, bindParams?: BindParams): R[];
   /** just rollsback on throw */
   transaction(cb: () => void): void;
 }

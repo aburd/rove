@@ -1,4 +1,4 @@
-import type { DB, Connection, BindParams, Row } from "./types.ts";
+import type { BindParams, Connection, DB, Row } from "./types.ts";
 import { Database } from "@db/sqlite";
 
 let db: DB;
@@ -16,10 +16,13 @@ export function getConnection(dbPath: string): Connection {
     closeDb() {
       sqlite3Db.close();
     },
-    exec(sql, bindParams) {
+    exec(sql, bindParams = {}) {
       return sqlite3Db.exec(sql, bindParams);
     },
-    sql: function<R extends object = Row>(sqlS: string, bindParams: BindParams) {
+    sql: function <R extends object = Row>(
+      sqlS: string,
+      bindParams: BindParams = {},
+    ) {
       const stmt = sqlite3Db.prepare(sqlS);
       const rows = stmt.all<R>(bindParams);
 
@@ -30,8 +33,8 @@ export function getConnection(dbPath: string): Connection {
         cb();
       });
       transaction();
-    }
-  }
+    },
+  };
 
   return {
     db,

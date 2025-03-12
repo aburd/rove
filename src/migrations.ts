@@ -1,4 +1,4 @@
-import type { Database } from "@db/sqlite";
+import type { DB } from "./db/types.ts";
 
 type MigrationRecord = {
   name: string;
@@ -19,23 +19,25 @@ async function fileToString(path: string): Promise<string> {
 }
 
 // MIGRATIONS TABLE QUERY
-function tableExists(db: Database, tableName: string) {
-  return db.sql`
+function tableExists(db: DB, tableName: string) {
+  return db.sql(
+    `
     SELECT name FROM sqlite_master 
-    WHERE type='${tableName}' AND name='{${tableName}}';
-  `.length !== 0;
+    WHERE type = :type AND name = :name;
+  `,
+    { type: tableName, name: tableName },
+  ).length !== 0;
 }
 
-function getMigrations(db: Database, migrationsTable: string): Migration[] {
-  const stmt = db.prepare(`
+function getMigrations(db: DB, migrationsTable: string): Migration[] {
+  const rows = db.sql<MigrationRecord>(`
     SELECT name, created_at FROM ${migrationsTable}
   `);
-  const rows = stmt.all<MigrationRecord>();
 
   return rows.map(({ name, created_at }) => ({ name, createdAt: created_at }));
 }
 
-function createMigrationsTable(db: Database, migrationsTable: string) {
+function createMigrationsTable(db: DB, migrationsTable: string) {
   return db.exec(`
     CREATE TABLE IF NOT EXISTS ${migrationsTable} (
       name TEXT PRIMARY KEY,
@@ -45,32 +47,38 @@ function createMigrationsTable(db: Database, migrationsTable: string) {
 }
 
 function createMigration(
-  db: Database,
+  db: DB,
   migrationsTable: string,
   { name, createdAt }: Migration,
 ) {
-  return db.exec(`
+  return db.exec(
+    `
     INSERT INTO ${migrationsTable}
       (name, created_at)
-    VALUES ('${name}', '${createdAt}');
-  `);
+    VALUES (:name, :createdAt);
+  `,
+    { name, createdAt },
+  );
 }
 
-function deleteMigration(db: Database, migrationsTable: string, name: string) {
-  return db.exec(`
-    DELETE FROM ${migrationsTable}
-    WHERE name = '${name}'
-  `);
+function deleteMigration(db: DB, migrationsTable: string, name: string) {
+  return db.exec(
+    `
+    DELETE FROM :migrationsTable
+    WHERE name = :name
+  `,
+    { migrationsTable, name },
+  );
 }
 
 // MIGRATIONS SINGLE
 function runMigrationUp(
-  db: Database,
+  db: DB,
   migrationsTable: string,
   sql: string,
   name: string,
 ) {
-  const runTransaction = db.transaction(() => {
+  db.transaction(() => {
     db.exec(sql);
     const createdCount = createMigration(db, migrationsTable, {
       name,
@@ -80,28 +88,26 @@ function runMigrationUp(
       throw Error(`Could not create migration: ${name}`);
     }
   });
-  runTransaction();
 }
 
 function runMigrationDown(
-  db: Database,
+  db: DB,
   migrationsTable: string,
   sql: string,
   name: string,
 ) {
-  const runTransaction = db.transaction(() => {
+  db.transaction(() => {
     db.exec(sql);
     const deletedCount = deleteMigration(db, migrationsTable, name);
     if (!deletedCount) {
       throw Error(`Could not delete migration: ${name}`);
     }
   });
-  runTransaction();
 }
 
 // IO
 async function getMigrationsToRun(
-  db: Database,
+  db: DB,
   migrationsTable: string,
   migrationsPath: string,
 ): Promise<{ sql: string; name: string }[]> {
@@ -135,7 +141,7 @@ async function getMigrationsToRun(
 }
 
 async function rollbackFromName(
-  db: Database,
+  db: DB,
   migrationsTable: string,
   migrationsPath: string,
   name: string,
@@ -153,7 +159,7 @@ async function rollbackFromName(
 }
 
 export async function rollbackOne(
-  db: Database,
+  db: DB,
   migrationsTable: string,
   migrationsPath: string,
 ) {
@@ -173,7 +179,7 @@ export async function rollbackOne(
 }
 
 export async function rollbackAll(
-  db: Database,
+  db: DB,
   migrationsTable: string,
   migrationsPath: string,
 ) {
@@ -190,7 +196,7 @@ export async function rollbackAll(
 }
 
 export async function migrateOne(
-  db: Database,
+  db: DB,
   migrationsTable: string,
   migrationsPath: string,
 ) {
@@ -214,7 +220,7 @@ export async function migrateOne(
 }
 
 export async function migrateAll(
-  db: Database,
+  db: DB,
   migrationsTable: string,
   migrationsPath: string,
 ) {
