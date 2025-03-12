@@ -1,3 +1,17 @@
+/**
+ * Contains all functions for getting Rove configurations.
+ * This function is mostly for usage with the CLI, but you could use it if you needed to.
+ *
+ * # Example
+ *
+ * ```ts
+ * import { config } from "jsr:@aburd/rove";
+ *
+ * const config = await config.getRoveConfig();
+ * ```
+ *
+ * @module
+ */
 import * as path from "@std/path";
 import { exists } from "@std/fs";
 import type { SqlType } from "./db/types.ts";
