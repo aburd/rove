@@ -1,10 +1,4 @@
 /**
- * Types related to DB functionality
- *
- * @module
- */
-
-/**
  * A connection to a SQL database
  */
 export type Connection = {

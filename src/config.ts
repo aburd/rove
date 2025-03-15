@@ -10,7 +10,7 @@
  * const config = await config.getRoveConfig();
  * ```
  *
- * @module
+ * @module config All functionality regarding configuration
  */
 import * as path from "@std/path";
 import { exists } from "@std/fs";

@@ -25,7 +25,7 @@
  * import { connect, migrations } from "jsr:@aburd/rove";
  * ```
  *
- * @module
+ * @module migrations Related to migration functionality
  */
 export * from "./createMigrationFiles.ts";
 export * from "./migrateAndRollback.ts";
