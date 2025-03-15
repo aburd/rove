@@ -60,6 +60,8 @@ deno run --allow-read --allow-write jsr:@aburd/rove/cli create --name my_new_mig
 
 ### Configuration
 
+You can pass in a config file with to the CLI with the `--config` option. Or if `rove.json` exists, it will use that by default.
+
 rove.json
 
 ```
@@ -71,11 +73,11 @@ rove.json
 }
 ```
 
-Using environment variables
+You can also overwrite any configuration by using environment variables:
 
 ```
 DB_PATH=resources/my.db
-DB_TYPE=SQLITE3
+DB_TYPE=sqlite3
 MIGRATION_DIR=migrations
 MIGRATION_TABLE=migrations
 ```

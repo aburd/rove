@@ -38,15 +38,16 @@ const DEFAULT_CONFIG: RoveConfig = {
 const DEFAULT_CONFIG_PATH = "rove.json";
 
 /**
- * Get Rove config if it exists, this is for convenience
- * and it is not necessary as you can configure everything
- * through the CLI
+ * Get Rove config
+ * If a config file exists, overwrite any options from config file
+ * If environment variables from shell exist, overwrite
  */
 export async function getRoveConfig(configPath?: string): Promise<RoveConfig> {
   const customConfigPath = path.join(
     Deno.cwd(),
     configPath ?? DEFAULT_CONFIG_PATH,
   );
+  let config = DEFAULT_CONFIG;
 
   // check custom config path
   if (await exists(customConfigPath)) {
@@ -54,8 +55,8 @@ export async function getRoveConfig(configPath?: string): Promise<RoveConfig> {
     try {
       const potentialConfig = JSON.parse(configJson);
 
-      return {
-        ...DEFAULT_CONFIG,
+      config = {
+        ...config,
         ...potentialConfig,
       };
     } catch (_) {
@@ -72,13 +73,17 @@ export async function getRoveConfig(configPath?: string): Promise<RoveConfig> {
   const migrationsTable = Deno.env.get("MIGRATION_TABLE");
 
   if (dbPath) {
-    return {
-      dbPath,
-      sqlType: sqlType as SqlType ?? DEFAULT_CONFIG.sqlType,
-      migrationsDir: migrationsDir ?? DEFAULT_CONFIG.migrationsDir,
-      migrationsTable: migrationsTable ?? DEFAULT_CONFIG.migrationsTable,
-    };
+    config.dbPath = dbPath;
+  }
+  if (sqlType) {
+    config.sqlType = sqlType as SqlType;
+  }
+  if (migrationsDir) {
+    config.migrationsDir = migrationsDir;
+  }
+  if (migrationsTable) {
+    config.migrationsTable = migrationsTable;
   }
 
-  return DEFAULT_CONFIG;
+  return config;
 }
