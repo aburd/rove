@@ -1,6 +1,6 @@
 import { getConnection } from "./sqlite.ts";
 import { exists } from "@std/fs";
-import { assertEquals } from "jsr:@std/assert";
+import { assertEquals } from "@std/assert";
 
 const TEST_DB_PATH = "resources/test.db";
 

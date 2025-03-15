@@ -1,5 +1,5 @@
 import type { DB } from "../db/types.ts";
-import { fileToString } from "../util.ts";
+import { fileToString, tableExists } from "../util.ts";
 
 type MigrationRecord = {
   name: string;
@@ -12,17 +12,6 @@ type Migration = {
 };
 
 const DEFAULT_MIGRATIONS_TABLE = "migrations";
-
-// MIGRATIONS TABLE QUERY
-function tableExists(db: DB, tableName: string) {
-  return db.sql(
-    `
-    SELECT name FROM sqlite_master 
-    WHERE type = :type AND name = :name;
-  `,
-    { type: tableName, name: tableName },
-  ).length !== 0;
-}
 
 function getMigrations(db: DB, migrationsTable: string): Migration[] {
   const rows = db.sql<MigrationRecord>(`
@@ -53,7 +42,7 @@ function createMigration(
       (name, created_at)
     VALUES (:name, :createdAt);
   `,
-    { name, createdAt },
+    [{ name, createdAt }],
   );
 }
 
@@ -63,7 +52,7 @@ function deleteMigration(db: DB, migrationsTable: string, name: string) {
     DELETE FROM ${migrationsTable}
     WHERE name = :name
   `,
-    { name },
+    [{ name }],
   );
 }
 

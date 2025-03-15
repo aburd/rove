@@ -1,0 +1,3 @@
+DROP TABLE baz;
+DROP TABLE bar;
+DROP TABLE foo;
