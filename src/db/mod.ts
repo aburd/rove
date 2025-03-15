@@ -5,12 +5,12 @@
  *
  * ```ts
  * import { db, migrations } from "@aburd/rove";
- * 
+ *
  * const connection = db.connect({
  *   dbPath: "resources/test.db",
  *   sqlType: "sqlite3",
  * });
- * 
+ *
  * // Runs a single migration
  * migrations.migrateOne(connection.db, "migrations");
  * // Run the next migration

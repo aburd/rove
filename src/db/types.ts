@@ -31,14 +31,23 @@ export type Row = Record<string, any>;
  * of a database
  */
 export interface DB {
-  /** get the db instance */
-  getDb(): DB;
   /** close the database connection safely */
   closeDb(): void;
-  /** exec some sql, return the number of affected rows */
-  exec(sql: string, bindParams?: BindParams): number;
-  /** give some sql and some bind parameters */
+  /**
+   * execute sql, can execute multiple statements
+   * @param sql the sql string
+   * @param sql an array of bind params, each statement will be fed the params in the position of the array
+   * @returns number the number of affected rows
+   */
+  exec(sql: string, bindParams?: BindParams[]): number;
+  /**
+   * execute sql but return the rows
+   * you can only execute a single statement
+   */
   sql<R extends object = Row>(sql: string, bindParams?: BindParams): R[];
-  /** just rollsback on throw */
+  /**
+   * Wrap sql statements in a transaction
+   * Will rollback on throw
+   */
   transaction(cb: () => void): void;
 }
