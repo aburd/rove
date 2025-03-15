@@ -1,0 +1,6 @@
+{
+  "dbPath": "resources/my.db",
+  "sqlType": "sqlite3",
+  "migrationsDir": "no",
+  "migrationsTable": "migrations"
+}

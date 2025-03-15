@@ -35,14 +35,19 @@ const DEFAULT_CONFIG: RoveConfig = {
   sqlType: "sqlite3",
 };
 
-const customConfigPath = path.join(Deno.cwd(), "rove.json");
+const DEFAULT_CONFIG_PATH = "rove.json";
 
 /**
  * Get Rove config if it exists, this is for convenience
  * and it is not necessary as you can configure everything
  * through the CLI
  */
-export async function getRoveConfig(): Promise<RoveConfig> {
+export async function getRoveConfig(configPath?: string): Promise<RoveConfig> {
+  const customConfigPath = path.join(
+    Deno.cwd(),
+    configPath ?? DEFAULT_CONFIG_PATH,
+  );
+
   // check custom config path
   if (await exists(customConfigPath)) {
     const configJson = await fileToString(customConfigPath);
@@ -77,5 +82,3 @@ export async function getRoveConfig(): Promise<RoveConfig> {
 
   return DEFAULT_CONFIG;
 }
-
-// console.log(await getRoveConfig())

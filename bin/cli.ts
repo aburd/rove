@@ -133,6 +133,17 @@ const COMMAND_DEFS: Command[] = [
   },
 ] as const;
 
+type CommonArgs = { config?: string };
+
+const COMMON_ARGS: Arg[] = [
+  {
+    name: "config",
+    short: "c",
+    description: "A path to a configuration file",
+    type: "string",
+  },
+];
+
 function argUsage({ name, short, description, type, required }: Arg) {
   if (type === "string") {
     return `  ${name} ${short ? `(-${short})` : ""} ${
@@ -172,13 +183,17 @@ function commandUsage({ name, description, args }: Command) {
 }
 
 function usage() {
-  return `rove <command>
+  return `rove <command> <options>
 where <command> is one of:
 
 ${
     COMMAND_DEFS.map((d) => `- ${d.name} ${d.short ? `or ${d.short}` : ""}`)
       .join("\n")
   }
+
+options depends on the command, but common options are:
+
+${COMMON_ARGS.map(argUsage).join("\n")}
 
 You can get more info on any command by using:
 rove <command> -h
@@ -255,6 +270,13 @@ function checkRequiredArgs(
   }
 
   return null;
+}
+
+function getCommonArgs(): CommonArgs {
+  const flags = parseArgs(Deno.args, genParseOpts());
+  const config = getValueFromFlags(flags, COMMON_ARGS[0]) as string;
+
+  return { config };
 }
 
 function parseCliInputToCommand(): [Command, ReturnType<typeof parseArgs>] {
@@ -410,7 +432,8 @@ async function dispatchAction(action: Action) {
 }
 
 async function main() {
-  const config = await getRoveConfig();
+  const commonArgs = getCommonArgs();
+  const config = await getRoveConfig(commonArgs.config);
   const [command, flags] = parseCliInputToCommand();
   const action = commandToAction(command, flags, config);
 
