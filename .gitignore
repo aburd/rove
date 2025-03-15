@@ -1,5 +1,5 @@
 .vim
 resources/test.db
-resources/*
+resources/*.db
 migrations/*
 rove.json
