@@ -1,3 +1,6 @@
+[![JSR](https://jsr.io/badges/@aburd/rove)](https://jsr.io/@aburd/rove)
+[![JSR Score](https://jsr.io/badges/@aburd/rove/score)](https://jsr.io/@aburd/rove)
+
 ## Rove
 
 A simple SQL migrations library and CLI for deno written in typescript.
@@ -46,7 +49,7 @@ deno run jsr:@aburd/rove/cli
 The options are all well documented through the help option, so please consult
 that.
 
-```
+```sh
 deno run jsr:@aburd/rove/cli help
 deno run jsr:@aburd/rove/cli create -h
 deno run jsr:@aburd/rove/cli migrate -h
@@ -54,7 +57,7 @@ deno run jsr:@aburd/rove/cli migrate -h
 
 You may need read and write permissions as necessary.
 
-```
+```sh
 deno run --allow-read --allow-write jsr:@aburd/rove/cli create --name my_new_migration
 ```
 
@@ -64,7 +67,7 @@ You can pass in a config file with to the CLI with the `--config` option. Or if 
 
 rove.json
 
-```
+```json
 {
   "dbPath": "resources/my.db",
   "sqlType": "sqlite3",
@@ -75,7 +78,7 @@ rove.json
 
 You can also overwrite any configuration by using environment variables:
 
-```
+```sh
 DB_PATH=resources/my.db
 DB_TYPE=sqlite3
 MIGRATION_DIR=migrations
