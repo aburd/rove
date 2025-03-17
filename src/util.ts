@@ -11,6 +11,9 @@ export async function fileToString(path: string): Promise<string> {
   return decoder.decode(data);
 }
 
+/**
+ * Tells us if a table is in the DB or not
+ */
 export function tableExists(db: DB, tableName: string) {
   return db.sql(
     `
@@ -22,6 +25,9 @@ export function tableExists(db: DB, tableName: string) {
   ).length !== 0;
 }
 
+/**
+ * Predicate which tells us if the string is empty or just a bunch of whitespace/line-breaks
+ */
 export function isEmptyOrWhitespace(s: string): boolean {
   if (!s) {
     return true;

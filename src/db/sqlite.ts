@@ -1,9 +1,20 @@
+/**
+ * Contains DB implementation for sqlite3
+ *
+ * @module database
+ */
 import { isEmptyOrWhitespace } from "../util.ts";
 import type { BindParams, Connection, DB, Row } from "./types.ts";
 import { Database } from "@db/sqlite";
 
+/**
+ * A connection to the database, implements dispose interface to be used with typescript `using` keyword
+ */
 let connection: Connection;
 
+/**
+ * Get an instance of an sqlite3 which satisfies the DB interface
+ */
 function getDb(dbPath: string): DB {
   const sqlite3Db = new Database(dbPath);
 

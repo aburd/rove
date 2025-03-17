@@ -1,5 +1,11 @@
 /**
- * A connection to a SQL database
+ * All types related to DB interface, the interface hides different flavors of SQL
+ *
+ * @module database
+ */
+
+/**
+ * A connection to the database, implements dispose interface to be used with typescript `using` keyword to a SQL database
  */
 export type Connection = {
   db: DB;
